@@ -19,6 +19,27 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("My Game")
 
 # Function to check collisions between bullets and enemies
+
+def checkPlayerDeath():# Check for player death
+    for enemy in enemies:
+        try:
+            for missile in enemy.missiles:
+                distance = math.sqrt((missile.x - player.x) ** 2 + (missile.y - player.y) ** 2)
+                if distance < enemy.radius + player.radius:
+                    game_over_screen()
+        except:
+            distance = math.sqrt((enemy.x - player.x) ** 2 + (enemy.y - player.y) ** 2)
+            if distance < enemy.radius + player.radius:
+                game_over_screen()
+    for boss in bosses:
+        distance = math.sqrt((boss.x - player.x) ** 2 + (boss.y - player.y) ** 2)
+        if distance < boss.size + player.radius:
+                game_over_screen()
+        for piece in boss.pieces:
+            distance = math.sqrt((piece.x - player.x) ** 2 + (piece.y - player.y) ** 2)
+            if distance < piece.size + player.radius:
+                    game_over_screen()
+
 def check_collisions():
     global score
 
@@ -118,13 +139,14 @@ def game_over_screen():
     # Set the background color
     screen.fill((255, 255, 255))
 
-    global player, bullets, enemies,bosses, score, beat_counter, zigzag, missile, enemy_missile_count
+    global player, bullets, enemies,bosses, score, beat_counter, zigzag, missile, enemy_missile_count, boss_spawn
     player = Player(400, 300)
     bullets = []
     enemies = []
     bosses = []
     score = 0
     beat_counter = 0
+    boss_spawn = False
     zigzag = False
     missile = False
     enemy_missile_count = 0
@@ -169,7 +191,7 @@ def game_over_screen():
                     waiting = False
                     title_screen()
 
-global player, bullets, enemies, score, beat_counter, zigzag, missile, enemy_missile_count, bosses
+global player, bullets, enemies, score, beat_counter, zigzag, missile, enemy_missile_count, bosses, boss_spawn
 player = Player(400, 300)
 bullets = []
 enemies = []
@@ -194,7 +216,7 @@ clock = pygame.time.Clock()
 running = True
 
 music_path = 'song1.mp3'
-threshold=0.4
+threshold = 0.4
 y, sr = librosa.load(music_path, mono=True)
 onset_env = librosa.onset.onset_strength(y=y, sr=sr)
 tempo, beat_frames = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr)
@@ -239,7 +261,7 @@ while running:
                 boss = Splinter(screen_width,screen_height,player)
                 bosses.append(boss)
                 boss_spawn = True
-                print("obama")
+                print("boss Spawned")
             if score > 100:
                 zigzag = random.random() < 0.2 # 20% change of zigzagg enemy
             if zigzag:
@@ -264,6 +286,7 @@ while running:
 
     # Check for collisions
     check_collisions()
+    checkPlayerDeath()
 
     # Update high score
     with open("highscore.txt", "r") as file:
@@ -300,18 +323,6 @@ while running:
     screen.blit(score_surface, (10, 10))
     highscore_text = font.render("High score: " + str(highscore), True, (255, 255, 255))
     screen.blit(highscore_text, (screen_width - 200, 10))
-
-    # Check for player death
-    for enemy in enemies:
-        try:
-            for missile in enemy.missiles:
-                distance = math.sqrt((missile.x - player.x) ** 2 + (missile.y - player.y) ** 2)
-                if distance < enemy.radius + player.radius:
-                    game_over_screen()
-        except:
-            distance = math.sqrt((enemy.x - player.x) ** 2 + (enemy.y - player.y) ** 2)
-            if distance < enemy.radius + player.radius:
-                game_over_screen()
 
     pygame.display.flip()
     if beat_counter < len(beat_times) and pygame.mixer.music.get_pos() / 1000 >= beat_times[beat_counter]:

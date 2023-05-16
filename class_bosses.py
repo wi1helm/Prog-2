@@ -17,12 +17,19 @@ class Splinter:
         self.pieces = []
         self.split_point = (self.x,self.y)
         self.split_ready = True
-    def update(self, screen_width, screen_height):
+        self.total_size_pieces = 0
+        self.lastSplit = self.size
 
-        if self.size < 240 and self.split_ready == True:
-            self.split()
-        if len(self.pieces) <= 2 and self.split_ready == False:
+    def update(self, screen_width, screen_height):
+        print(self.total_size_pieces)
+        print(self.lastSplit - 10)
+        self.total_size_pieces = 0
+        for piece in self.pieces:
+            self.total_size_pieces += piece.size
+        if self.total_size_pieces < (self.lastSplit - 10):
             self.asseble()
+        if self.size < (self.lastSplit - 10) and self.split_ready == True:
+            self.split()
 
         dx = self.player.x - self.x
         dy = self.player.y - self.y
@@ -33,6 +40,7 @@ class Splinter:
 
     def split(self):
         self.split_ready = False
+        self.lastSplit = self.size
         pieces = random.randint(10,20)
         new_size = self.size / pieces
         for i in range(pieces):
@@ -55,13 +63,14 @@ class Splinter:
         self.y = 0
         self.size = 0
         self.split_point = (self.x,self.y)
+
     def asseble(self):
         for piece in self.pieces:
             self.size += piece.size
             self.x = self.split_point[0]
             self.y = self.split_point[1]
             self.pieces.remove(piece)
-
+        self.split_ready = True
 
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)
