@@ -17,18 +17,27 @@ class Splinter:
         self.pieces = []
         self.split_point = (self.x,self.y)
         self.split_ready = True
+        self.asseble_ready = False
         self.total_size_pieces = 0
-        self.lastSplit = self.size
+        self.nextActionNumber = self.size - 50
+        self.ending = False
 
     def update(self, screen_width, screen_height):
-        print(self.total_size_pieces)
-        print(self.lastSplit - 10)
+
+        #print(self.total_size_pieces, self.size, self.nextActionNumber)
+
         self.total_size_pieces = 0
         for piece in self.pieces:
             self.total_size_pieces += piece.size
-        if self.total_size_pieces < (self.lastSplit - 10):
+
+        if self.total_size_pieces < 10 and self.size < 10 and self.ending == False:
+            self.split_ready = False
+            self.ending = True
             self.asseble()
-        if self.size < (self.lastSplit - 10) and self.split_ready == True:
+        if self.total_size_pieces < self.nextActionNumber and self.asseble_ready == True:
+            self.asseble()
+
+        if self.size < self.nextActionNumber and self.split_ready == True:
             self.split()
 
         dx = self.player.x - self.x
@@ -39,10 +48,14 @@ class Splinter:
             self.y += dy / distance * self.speed
 
     def split(self):
+        print("split")
+        self.nextActionNumber -= 70
+        self.asseble_ready = True
         self.split_ready = False
         self.lastSplit = self.size
-        pieces = random.randint(10,20)
-        new_size = self.size / pieces
+        pieces = random.randint(7,15)
+        print(pieces)
+        new_size = (self.size / pieces) * 2
         for i in range(pieces):
             chanceX = random.random()
             chanceY = random.random()
@@ -59,18 +72,31 @@ class Splinter:
             piece = Boss_bits(self.x+int(self.size)*chanceX, self.y+int(self.size)*chanceY, new_size,self.player)
             self.pieces.append(piece)
             self.size -= new_size
+        self.split_point = (self.x,self.y)
+        print(self.size, self.nextActionNumber)
         self.x = 10**3
         self.y = 0
         self.size = 0
-        self.split_point = (self.x,self.y)
+        
 
     def asseble(self):
-        for piece in self.pieces:
-            self.size += piece.size
-            self.x = self.split_point[0]
-            self.y = self.split_point[1]
+
+        print("Avengers")
+        self.asseble_ready = False
+        pieces_copy = self.pieces[:]
+        for piece in pieces_copy:
+            self.size += (piece.size + 5)
             self.pieces.remove(piece)
-        self.split_ready = True
+            print(len(pieces_copy))
+        self.x = self.split_point[0]
+        self.y = self.split_point[1]
+        print(self.size, self.nextActionNumber)
+        self.nextActionNumber = self.size - 50
+
+        if self.total_size_pieces >= 10:
+            self.split_ready = True
+
+    
 
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)

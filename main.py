@@ -51,7 +51,7 @@ def check_collisions():
                 enemy.radius -= 5
                 score += 1
 
-                if enemy.radius <= 0:
+                if enemy.radius <= 2:
                     create_particle(10, 5, 0.1, (enemy.x, enemy.y))
                     enemies.remove(enemy)
                     score += 5
@@ -66,9 +66,10 @@ def check_collisions():
                 boss.health -= 1
                 boss.size -= 1
 
-                if boss.size <= 0:
+                if boss.size <= 2:
                     create_particle(4, 5, 0.5, (boss.x, boss.y))
                     bosses.remove(boss)
+                    print("boss dead")
                     score += 50
 
                 if bullet in bullets:
@@ -80,13 +81,13 @@ def check_collisions():
                 if distance < piece.size + bullet.radius:
                     piece.size -= 1
 
-                    if piece.size <= 0:
+                    if piece.size <= 2:
                         create_particle(4, 5, 0.5, (piece.x, piece.y))
                         boss.pieces.remove(piece)
                         score += 10
 
-                        if bullet in bullets:
-                            bullets.remove(bullet)
+                    if bullet in bullets:
+                        bullets.remove(bullet)
 # Function to display title screen and wait for user to start game
 def title_screen():
     # Set the background color
@@ -241,7 +242,14 @@ missile = False
 boss_spawn = False
 enemy_missile_count = 0
 
-mode_laptop = True
+
+mode_laptop = False
+
+
+boss = Splinter(screen_width,screen_height,player)
+bosses.append(boss)
+boss_spawn = True
+print("boss Spawned")
 
 while running:
     clock.tick(60)
@@ -286,7 +294,7 @@ while running:
 
     # Check for collisions
     check_collisions()
-    checkPlayerDeath()
+    #checkPlayerDeath()
 
     # Update high score
     with open("highscore.txt", "r") as file:
