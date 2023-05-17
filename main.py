@@ -39,9 +39,13 @@ def checkPlayerDeath():# Check for player death
             distance = math.sqrt((piece.x - player.x) ** 2 + (piece.y - player.y) ** 2)
             if distance < piece.size + player.radius:
                     game_over_screen()
+        for particle in boss.particals:
+            distance = math.sqrt((particle.x - player.x) ** 2 + (particle.y - player.y) ** 2)
+            if distance < particle.size + player.radius:
+                    game_over_screen()
 
 def check_collisions():
-    global score
+    global score, spawn_enemies
 
     for bullet in bullets:
         for enemy in enemies:
@@ -70,6 +74,7 @@ def check_collisions():
                     create_particle(4, 5, 0.5, (boss.x, boss.y))
                     bosses.remove(boss)
                     print("boss dead")
+                    spawn_enemies = True
                     score += 50
 
                 if bullet in bullets:
@@ -331,6 +336,8 @@ while running:
         for bits in boss.pieces:
             bits.draw(screen)
             bits.update(screen_width,screen_height)
+        for particle in boss.particals:
+            particle.draw(screen)
     player.draw(screen)
 
     # Display score and high score
