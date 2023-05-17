@@ -64,7 +64,7 @@ def check_collisions():
 
             if distance < boss.size + bullet.radius:
                 boss.health -= 1
-                boss.size -= 1
+                boss.size -= 0.5
 
                 if boss.size <= 2:
                     create_particle(4, 5, 0.5, (boss.x, boss.y))
@@ -140,7 +140,7 @@ def game_over_screen():
     # Set the background color
     screen.fill((255, 255, 255))
 
-    global player, bullets, enemies,bosses, score, beat_counter, zigzag, missile, enemy_missile_count, boss_spawn
+    global player, bullets, enemies,bosses, score, beat_counter, zigzag, missile, enemy_missile_count, boss_spawn, spawn_enemies, has_boss_spawned
     player = Player(400, 300)
     bullets = []
     enemies = []
@@ -148,8 +148,10 @@ def game_over_screen():
     score = 0
     beat_counter = 0
     boss_spawn = False
+    has_boss_spawned = False
     zigzag = False
     missile = False
+    spawn_enemies = True
     enemy_missile_count = 0
     # Create a font object
     font = pygame.font.SysFont(None, 48)
@@ -192,7 +194,7 @@ def game_over_screen():
                     waiting = False
                     title_screen()
 
-global player, bullets, enemies, score, beat_counter, zigzag, missile, enemy_missile_count, bosses, boss_spawn
+global player, bullets, enemies, score, beat_counter, zigzag, missile, enemy_missile_count, bosses, boss_spawn, spawn_enemies, has_boss_spawned
 player = Player(400, 300)
 bullets = []
 enemies = []
@@ -239,17 +241,12 @@ new_color = (33, 73, 62)
 
 zigzag = False
 missile = False
-boss_spawn = False
+boss_spawn = True
+spawn_enemies = False
 enemy_missile_count = 0
-
+has_boss_spawned = False
 
 mode_laptop = False
-
-
-boss = Splinter(screen_width,screen_height,player)
-bosses.append(boss)
-boss_spawn = True
-print("boss Spawned")
 
 while running:
     clock.tick(60)
@@ -263,26 +260,36 @@ while running:
         if event.type == SHOOT_EVENT and mode_laptop:
             player.shoot(bullets)
         elif event.type == ADD_ENEMY_EVENT:
-            if score > 50:
-                missile = random.random() < 0.4
-            if boss_spawn == False:
+            
+            if score > 110 and has_boss_spawned == False:
+                boss_spawn = True
+
+            if boss_spawn == True:
                 boss = Splinter(screen_width,screen_height,player)
                 bosses.append(boss)
-                boss_spawn = True
+                boss_spawn = False
+                has_boss_spawned = True
+                spawn_enemies = False
                 print("boss Spawned")
-            if score > 100:
-                zigzag = random.random() < 0.2 # 20% change of zigzagg enemy
-            if zigzag:
-                zigzag = False
-                enemies.append(ZigzagEnemy(screen_width, screen_height, player))
-            elif missile and enemy_missile_count < 6:
-                missile = False
-                enemies.append(MissileEnemy(screen_width, screen_height, player))
-                enemy_missile_count += 1
-            else:
-                missile = False
-                zigzag = False
-                enemies.append(Enemy(screen_width, screen_height, player))
+
+            
+            if spawn_enemies:
+                if score > 50:
+                    missile = random.random() < 0.4
+                
+                if score > 100:
+                    zigzag = random.random() < 0.2 # 20% change of zigzagg enemy
+                if zigzag:
+                    zigzag = False
+                    enemies.append(ZigzagEnemy(screen_width, screen_height, player))
+                elif missile and enemy_missile_count < 6:
+                    missile = False
+                    enemies.append(MissileEnemy(screen_width, screen_height, player))
+                    enemy_missile_count += 1
+                else:
+                    missile = False
+                    zigzag = False
+                    enemies.append(Enemy(screen_width, screen_height, player))
 
     # Handle player movement
     keys_pressed = pygame.key.get_pressed()
@@ -294,7 +301,7 @@ while running:
 
     # Check for collisions
     check_collisions()
-    #checkPlayerDeath()
+    checkPlayerDeath()
 
     # Update high score
     with open("highscore.txt", "r") as file:
