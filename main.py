@@ -10,13 +10,18 @@ from class_player import Player
 
 pygame.init()
 pygame.mixer.init()
-pygame.mixer.music.set_volume(0.5)  # 50% volume
+pygame.mixer.music.set_volume(0.1)  # 50% volume
 
 # Set the screen size and title
-screen_width = 1000
-screen_height = 700
+screen_width = 1200
+screen_height = 900
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("My Game")
+
+font = pygame.font.Font(None, 36)
+loading_surface = font.render("Loading", True, (255, 255, 255))
+screen.blit(loading_surface, (screen_width/2, screen_height/2))
+pygame.display.flip()
 
 # Function to check collisions between bullets and enemies
 
@@ -134,23 +139,25 @@ def title_screen():
                 mouse_pos = pygame.mouse.get_pos()
                 if message_rect.collidepoint(mouse_pos):
                     waiting = False
+                    pygame.mixer.music.load(music_paths[currentMusicID])
+                    pygame.mixer.music.play(-1)
                 elif setting_rect.collidepoint(mouse_pos):
                     waiting = False
 
 # Function to display game over screen and wait for player to choose option
 def game_over_screen():
     # Stop playing music
-    pygame.mixer.music.rewind()
 
     # Set the background color
     screen.fill((255, 255, 255))
 
-    global player, bullets, enemies,bosses, score, beat_counter, zigzag, missile, enemy_missile_count, boss_spawn, spawn_enemies, has_boss_spawned
+    global player, bullets, enemies,bosses, score, beat_counter, zigzag, missile, enemy_missile_count, boss_spawn, spawn_enemies, has_boss_spawned, currentMusicID
     player = Player(400, 300)
     bullets = []
     enemies = []
     bosses = []
     score = 0
+    currentMusicID = 0
     beat_counter = 0
     boss_spawn = False
     has_boss_spawned = False
@@ -180,6 +187,9 @@ def game_over_screen():
     screen.blit(restart_text, restart_rect)
     screen.blit(menu_text, menu_rect)
 
+    pygame.mixer.music.load(music_paths[currentMusicID])
+    pygame.mixer.music.play(-1)
+
     # Update the display
     pygame.display.update()
 
@@ -199,7 +209,7 @@ def game_over_screen():
                     waiting = False
                     title_screen()
 
-global player, bullets, enemies, score, beat_counter, zigzag, missile, enemy_missile_count, bosses, boss_spawn, spawn_enemies, has_boss_spawned
+global player, bullets, enemies, score, beat_counter, zigzag, missile, enemy_missile_count, bosses, boss_spawn, spawn_enemies, has_boss_spawned, currentMusicID
 player = Player(400, 300)
 bullets = []
 enemies = []
@@ -213,7 +223,7 @@ if not os.path.isfile("highscore.txt"):
 with open("highscore.txt", "r") as file:
     highscore = int(file.read())
 
-font = pygame.font.Font(None, 36)
+
 score_surface = font.render("Score: " + str(score), True, (255, 255, 255))
 screen.blit(score_surface, (10, 10))
 highscore_text = font.render("High score: " + str(highscore), True, (255, 255, 255))
@@ -223,22 +233,45 @@ next_color_time = 0
 clock = pygame.time.Clock()
 running = True
 
-music_path = 'song1.mp3'
+music_paths = ["boss.mp3",'song1.mp3']
+currentMusicID = 0
+lastMusicID = currentMusicID
 threshold = 0.4
-y, sr = librosa.load(music_path, mono=True)
-onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-tempo, beat_frames = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr)
-beat_times = librosa.frames_to_time(beat_frames, sr=sr)
-beat_counter = 0
+pathIndex = 0
+yList = []
+srList = []
+onset_envList = []
+tempoList = []
+beat_framesList = []
+beat_timesList = []
 
-pygame.mixer.music.load(music_path)
-pygame.mixer.music.play(-1)  # the -1 value means the music will loop indefinitely
+for paths in music_paths:
+    y, sr = librosa.load(paths, mono=True)
+    yList.append(y)
+    srList.append(sr)
+    onset_env = librosa.onset.onset_strength(y=yList[pathIndex], sr=srList[pathIndex])
+    onset_envList.append(onset_env)
+    tempo, beat_frames = librosa.beat.beat_track(onset_envelope=onset_envList[pathIndex], sr=srList[pathIndex])
+    tempoList.append(tempo)
+    beat_framesList.append(beat_frames)
+    beat_times = librosa.frames_to_time(beat_framesList[pathIndex], sr=srList[pathIndex])
+    beat_timesList.append(beat_times)
+    beat_counter = 0
+    pathIndex += 1
+
+
+pygame.mixer.music.load(music_paths[currentMusicID])
+pygame.mixer.music.play(-1)
+
 
 ADD_ENEMY_EVENT = pygame.USEREVENT + 1
 pygame.time.set_timer(ADD_ENEMY_EVENT, 1200)
 
 SHOOT_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SHOOT_EVENT, 200)
+
+ATTACK_EVENT = pygame.USEREVENT + 3
+pygame.time.set_timer(ATTACK_EVENT, 1000)
 
 title_screen()
 
@@ -256,12 +289,28 @@ mode_laptop = False
 while running:
     clock.tick(60)
 
+
+    if lastMusicID != currentMusicID:
+        pygame.mixer.music.load(music_paths[currentMusicID])
+        pygame.mixer.music.play(-1)
+        beat_counter = 0
+    lastMusicID = currentMusicID
+
     # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             player.shoot(bullets)
+        if event.type == ATTACK_EVENT:
+            if len(bosses) > 0:
+                for boss in bosses:
+                    randomPiece = random.randint(0,len(boss.pieces))
+                    for i in range(len(boss.pieces)):
+                        if i == randomPiece:
+                            if boss.pieces[i].attack != True:
+                                boss.pieces[i].startAttack()
+
         if event.type == SHOOT_EVENT and mode_laptop:
             player.shoot(bullets)
         elif event.type == ADD_ENEMY_EVENT:
@@ -283,6 +332,7 @@ while running:
                     missile = random.random() < 0.4
                 
                 if score > 100:
+                    currentMusicID = 1
                     zigzag = random.random() < 0.2 # 20% change of zigzagg enemy
                 if zigzag:
                     zigzag = False
@@ -306,7 +356,7 @@ while running:
 
     # Check for collisions
     check_collisions()
-    checkPlayerDeath()
+    #checkPlayerDeath()
 
     # Update high score
     with open("highscore.txt", "r") as file:
@@ -332,10 +382,12 @@ while running:
         particle.draw(screen)
     for boss in bosses:
         boss.draw(screen)
+        boss.color = new_color
         boss.update(screen_width,screen_height)
         for bits in boss.pieces:
             bits.draw(screen)
-            bits.update(screen_width,screen_height)
+            bits.color = new_color
+            bits.update(screen_width,screen_height,screen)
         for particle in boss.particals:
             particle.draw(screen)
     player.draw(screen)
@@ -347,8 +399,8 @@ while running:
     screen.blit(highscore_text, (screen_width - 200, 10))
 
     pygame.display.flip()
-    if beat_counter < len(beat_times) and pygame.mixer.music.get_pos() / 1000 >= beat_times[beat_counter]:
-        if onset_env[beat_frames[beat_counter]] > threshold:
+    if beat_counter < len(beat_timesList[currentMusicID]) and pygame.mixer.music.get_pos() / 1000 >= beat_timesList[currentMusicID][beat_counter]:
+        if onset_envList[currentMusicID][beat_framesList[currentMusicID][beat_counter]] > threshold:
             new_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         beat_counter += 1
 pygame.quit()
