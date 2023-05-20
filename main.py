@@ -10,7 +10,7 @@ from class_player import Player
 
 pygame.init()
 pygame.mixer.init()
-pygame.mixer.music.set_volume(0.1)  # 50% volume
+pygame.mixer.music.set_volume(0.4)  # 50% volume
 
 # Set the screen size and title
 screen_width = 1200
@@ -47,6 +47,10 @@ def checkPlayerDeath():# Check for player death
         for particle in boss.particals:
             distance = math.sqrt((particle.x - player.x) ** 2 + (particle.y - player.y) ** 2)
             if distance < particle.size + player.radius:
+                    game_over_screen()
+        for fragment in boss.fragments:
+            distance = math.sqrt((fragment.x - player.x) ** 2 + (fragment.y - player.y) ** 2)
+            if distance < fragment.radius + player.radius:
                     game_over_screen()
 
 def check_collisions():
@@ -94,6 +98,19 @@ def check_collisions():
                     if piece.size <= 2:
                         create_particle(4, 5, 0.5, (piece.x, piece.y))
                         boss.pieces.remove(piece)
+                        score += 10
+
+                    if bullet in bullets:
+                        bullets.remove(bullet)
+            for fragment in boss.fragments:
+                distance = math.sqrt((fragment.x - bullet.x) ** 2 + (fragment.y - bullet.y) ** 2)
+
+                if distance < fragment.radius + bullet.radius:
+                    fragment.radius -= 3
+
+                    if fragment.radius <= 2:
+                        create_particle(4, 5, 0.5, (fragment.x, fragment.y))
+                        boss.fragments.remove(fragment)
                         score += 10
 
                     if bullet in bullets:
@@ -273,6 +290,9 @@ pygame.time.set_timer(SHOOT_EVENT, 200)
 ATTACK_EVENT = pygame.USEREVENT + 3
 pygame.time.set_timer(ATTACK_EVENT, 1000)
 
+FRAG_ATTACK_EVENT = pygame.USEREVENT + 4
+pygame.time.set_timer(FRAG_ATTACK_EVENT, 1000)
+
 title_screen()
 
 new_color = (33, 73, 62)
@@ -308,8 +328,15 @@ while running:
                     randomPiece = random.randint(0,len(boss.pieces))
                     for i in range(len(boss.pieces)):
                         if i == randomPiece:
-                            if boss.pieces[i].attack != True:
+                            if boss.pieces[i].attack != True and boss.pieces[i].retreat != True:
                                 boss.pieces[i].startAttack()
+                                print("obama")
+        if event.type == FRAG_ATTACK_EVENT:
+            print("obaam")
+            if len(bosses) > 0:
+                for boss in bosses:
+                    boss.attack()
+
 
         if event.type == SHOOT_EVENT and mode_laptop:
             player.shoot(bullets)
@@ -390,6 +417,13 @@ while running:
             bits.update(screen_width,screen_height,screen)
         for particle in boss.particals:
             particle.draw(screen)
+        for fragment in boss.fragments:
+            fragment.draw(screen)
+            fragment.color = new_color
+            if fragment.start_animating == True:
+                fragment.start_animation()
+            else:
+                fragment.update(screen_width,screen_height)
     player.draw(screen)
 
     # Display score and high score

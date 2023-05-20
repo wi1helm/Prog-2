@@ -3,7 +3,7 @@ import random
 import math
 
 from class_particle import particles, create_particle
-
+from class_enemy import Enemy
 
 class Splinter:
     def __init__(self, screen_width, screen_height, player):
@@ -22,11 +22,12 @@ class Splinter:
         self.nextActionNumber = self.size - 20
         self.ending = False
         self.particals = []
-        
-
+        self.fragments = []
+        self.normal = True
+        self.shrink = False
+        self.growth = False
     def update(self, screen_width, screen_height):
 
-        
         for particle in self.particals:
             particle.update(screen_width,screen_height)
         
@@ -120,6 +121,25 @@ class Splinter:
         for i in range(360):
             particle = particleCarrier(self.x + self.size * math.cos(math.radians(i)),self.y + self.size * math.sin(math.radians(i)),10,self.player,math.radians(i), self)
             self.particals.append(particle)
+    
+    def attack(self):
+
+        chanceX = random.random()
+        chanceY = random.random()
+
+        if chanceX < 0.5:
+            chanceX = -1
+        else:
+            chanceX = 1
+        if chanceY < 0.5:
+            chanceY = -1
+        else:
+            chanceY = 1
+
+        fragment = Splinter_fragments(self.x + self.size * chanceX,self.y + self.size * chanceY,self.player,(self.player.x,self.player.y))
+        self.fragments.append(fragment)
+    
+    
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)
 
@@ -143,12 +163,14 @@ class Boss_bits:
         self.retreatPoint = None
         self.presiceAttackPoint = (player.x,player.y)
         self.attackSpeed = 8
+        
 
 
     def startAttack(self):
-        self.presiceAttackPoint = (self.player.x,self.player.y)
-        self.retreatPoint = (self.x,self.y)
-        self.attack = True
+        if self.attack == False and self.retreat == False:
+            self.presiceAttackPoint = (self.player.x,self.player.y)
+            self.retreatPoint = (self.x,self.y)
+            self.attack = True
 
 
     def update(self, screen_width, screen_height,screen):
@@ -156,7 +178,6 @@ class Boss_bits:
         dx = self.attackPoint[0] - self.x
         dy = self.attackPoint[1] - self.y
         distance = math.sqrt(dx ** 2 + dy ** 2)
-
 
         
 
@@ -175,23 +196,29 @@ class Boss_bits:
 
 
         elif self.attack :
-            
+            print("Crarche")
+            print(self.presiceAttackPoint)
             ax, ay = self.presiceAttackPoint
             dx = ax - self.x
             dy = ay - self.y
             distance = math.sqrt(dx ** 2 + dy ** 2)
+            print("attack distance ", distance)
             if distance > 5:
                 self.x += dx / distance * self.attackSpeed
                 self.y += dy / distance * self.attackSpeed
             else:
+                print("we win")
                 self.attack = False
                 self.retreat = True
 
         elif self.retreat :
+            print("You stupid")
+            print(self.retreatPoint)
             rx, ry = self.retreatPoint
             dx = rx - self.x
             dy = ry - self.y
             distance = math.sqrt(dx ** 2 + dy ** 2)
+            print("retread distance ", distance)
             if distance > 0.5:
                 self.x += dx / distance * self.attackSpeed
                 self.y += dy / distance * self.attackSpeed
@@ -199,7 +226,10 @@ class Boss_bits:
                 self.retreat = False
 
         elif distance > self.attackRadius:
+
             
+
+            print("Orbit time")
             v = math.radians(180 - (math.degrees(math.asin(self.attackRadius/distance) + math.atan(dx/dy))))
             vod = math.radians((360 - math.degrees(math.asin(self.attackRadius/distance) + math.atan(dx/dy))))
 
@@ -227,21 +257,31 @@ class Boss_bits:
 
                 self.x += dx / distance * self.speed
                 self.y += dy / distance * self.speed
-                
-        else:
-            
-            self.angle = math.degrees(math.atan2(dx,dy))
-            self.angle += 1.5
-            self.angle = math.radians(self.angle)
-            new_dx = math.sin(self.angle) * self.attackRadius
-            new_dy = math.cos(self.angle) * self.attackRadius
-            new_distance = math.sqrt(new_dx ** 2 + new_dy ** 2)
-            
-            self.x += new_dx / new_distance * self.speed
-            self.y += new_dy / new_distance * self.speed
 
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)
+
+
+class Splinter_fragments(Enemy):
+    def __init__(self,x,y,player, start_point):
+        super().__init__(0,0,player)
+        self.x = x
+        self.y = y
+        self.start_point = start_point
+        self.start_animating = True
+        self.animation_speed = 10
+    def start_animation(self):
+        sx, sy = self.start_point
+        dx = sx - self.x
+        dy = sy - self.y
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+        if distance > 5:
+            self.x += dx / distance * self.animation_speed
+            self.y += dy / distance * self.animation_speed
+        else:
+            self.start_animating = False
+
+
 
 
 class particleCarrier:
@@ -251,7 +291,7 @@ class particleCarrier:
         self.y = y
         self.angle = angle
         self.color = (255 ,255, 255)
-        self.speed = 7
+        self.speed = 5
         self.player = player
         self.boss = boss
     def update(self, screen_width, screen_height):
@@ -259,9 +299,9 @@ class particleCarrier:
         dx = self.boss.x - self.x
         dy = self.boss.y - self.y
         distance = math.sqrt(dx ** 2 + dy ** 2)
-        if self.x > screen_width or self.x < 0 or self.y < 0 or self.y > screen_height or distance > 180:
+        if self.x > screen_width or self.x < 0 or self.y < 0 or self.y > screen_height or distance > 200:
             self.boss.particals.remove(self)
-        create_particle(1,5,2,(self.x,self.y),(114,200,184),0.5)
+        create_particle(1,5,0.5,(self.x,self.y),(114,200,184),0.5)
         self.x += math.cos(self.angle) * self.speed
         self.y += math.sin(self.angle) * self.speed
     
