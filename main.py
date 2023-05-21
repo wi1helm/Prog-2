@@ -65,7 +65,7 @@ def check_collisions():
                 score += 1
 
                 if enemy.radius <= 2:
-                    create_particle(10, 5, 0.1, (enemy.x, enemy.y))
+                    create_particle(10, 5, 0.1, (enemy.x, enemy.y),new_color)
                     enemies.remove(enemy)
                     score += 5
 
@@ -80,7 +80,7 @@ def check_collisions():
                 boss.size -= 0.5
 
                 if boss.size <= 2:
-                    create_particle(4, 5, 0.5, (boss.x, boss.y))
+                    create_particle(4, 5, 0.5, (boss.x, boss.y),new_color)
                     bosses.remove(boss)
                     print("boss dead")
                     spawn_enemies = True
@@ -96,7 +96,7 @@ def check_collisions():
                     piece.size -= 1
 
                     if piece.size <= 2:
-                        create_particle(4, 5, 0.5, (piece.x, piece.y))
+                        create_particle(4, 5, 0.5, (piece.x, piece.y),new_color)
                         boss.pieces.remove(piece)
                         score += 10
 
@@ -106,10 +106,10 @@ def check_collisions():
                 distance = math.sqrt((fragment.x - bullet.x) ** 2 + (fragment.y - bullet.y) ** 2)
 
                 if distance < fragment.radius + bullet.radius:
-                    fragment.radius -= 3
+                    fragment.radius -= 7
 
                     if fragment.radius <= 2:
-                        create_particle(4, 5, 0.5, (fragment.x, fragment.y))
+                        create_particle(4, 5, 0.5, (fragment.x, fragment.y),new_color)
                         boss.fragments.remove(fragment)
                         score += 10
 
@@ -335,7 +335,8 @@ while running:
             print("obaam")
             if len(bosses) > 0:
                 for boss in bosses:
-                    boss.attack()
+                    if boss.normal:
+                        boss.attack()
 
 
         if event.type == SHOOT_EVENT and mode_laptop:

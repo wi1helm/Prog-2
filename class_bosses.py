@@ -56,7 +56,8 @@ class Splinter:
             self.y += dy / distance * self.speed
 
     def split(self):
-        
+        self.normal = False
+        self.fragments = []
         print("split")
         self.split_ready = False
         self.lastSplit = self.size
@@ -89,14 +90,13 @@ class Splinter:
         self.size = 0
         self.speed = 0
         self.asseble_ready = True
-
     
     def start_asseble(self):
         for bits in self.pieces:
             bits.assemble = True
 
     def asseble(self):
-
+        self.normal = True
         for bits in self.pieces:
             bits.assemble = False
 
@@ -196,29 +196,29 @@ class Boss_bits:
 
 
         elif self.attack :
-            print("Crarche")
-            print(self.presiceAttackPoint)
+            
+          
             ax, ay = self.presiceAttackPoint
             dx = ax - self.x
             dy = ay - self.y
             distance = math.sqrt(dx ** 2 + dy ** 2)
-            print("attack distance ", distance)
+      
             if distance > 5:
                 self.x += dx / distance * self.attackSpeed
                 self.y += dy / distance * self.attackSpeed
             else:
-                print("we win")
+                
                 self.attack = False
                 self.retreat = True
 
         elif self.retreat :
-            print("You stupid")
-            print(self.retreatPoint)
+           
+           
             rx, ry = self.retreatPoint
             dx = rx - self.x
             dy = ry - self.y
             distance = math.sqrt(dx ** 2 + dy ** 2)
-            print("retread distance ", distance)
+     
             if distance > 0.5:
                 self.x += dx / distance * self.attackSpeed
                 self.y += dy / distance * self.attackSpeed
@@ -257,7 +257,14 @@ class Boss_bits:
 
                 self.x += dx / distance * self.speed
                 self.y += dy / distance * self.speed
+        else:
+            dy = self.player.y - self.y
+            dx = self.player.x - self.x
 
+            distance = math.sqrt(dx ** 2 + dy ** 2)
+            
+            self.x += dx / distance * -self.speed
+            self.y += dy / distance * -self.speed
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)
 
