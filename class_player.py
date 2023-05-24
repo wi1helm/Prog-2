@@ -51,7 +51,7 @@ class Player:
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
 
-    def shoot(self, bullets):
+    def shoot(self, bullets): # Create a new bullet.
         mouse_pos = pygame.mouse.get_pos()
         bullet = Bullet(self.x, self.y, math.atan2(mouse_pos[1] - self.y, mouse_pos[0] - self.x))
         bullets.append(bullet)
@@ -70,5 +70,5 @@ class Bullet:
         self.y += math.sin(self.angle) * self.speed
 
     def draw(self, screen):
-        if self.x > 0:
+        if self.x > 0: # Prevents some bug when x is negativ. Draws a line ove the screen for a split seacond.
             pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)

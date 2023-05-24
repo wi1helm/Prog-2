@@ -9,6 +9,8 @@ class Splinter:
     def __init__(self, screen_width, screen_height, player):
         self.x = screen_width
         self.y = screen_height / 2
+        self.screen_height = screen_height
+        self.screen_width = screen_width
         self.player = player
         self.health = 500
         self.speed = 0.5
@@ -62,9 +64,15 @@ class Splinter:
         self.split_ready = False
         self.lastSplit = self.size
         self.split_point = (self.x,self.y)
+        dx = self.screen_width/2 - self.player.x
+        dy = self.screen_height/2 - self.player.y
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+        if distance > 250:
+           self.split_point = (self.screen_width/2,self.screen_height/2) 
         pieces =  random.randint(10,15)
         new_size = (self.size / pieces)
         for i in range(pieces):
+            # Get a random direction to spawn the bits in.
             chanceX = random.random()
             chanceY = random.random()
 
@@ -83,7 +91,7 @@ class Splinter:
         self.total_size_pieces = 0
         for piece in self.pieces:
             self.total_size_pieces += piece.size
-        self.nextActionNumber = self.total_size_pieces - 70
+        self.nextActionNumber = self.total_size_pieces - 70 # Get the new value where the hp of the boss is gonna trigger an assemble.
         print(self.total_size_pieces,self.nextActionNumber)
         self.x = 10**4
         self.y = 10**4
@@ -117,13 +125,13 @@ class Splinter:
         if self.total_size_pieces >= 10:
             self.split_ready = True
     
-    def shockWave(self):
+    def shockWave(self):# Create a shookwave effect.
         for i in range(360):
             particle = particleCarrier(self.x + self.size * math.cos(math.radians(i)),self.y + self.size * math.sin(math.radians(i)),10,self.player,math.radians(i), self)
             self.particals.append(particle)
     
     def attack(self):
-
+        #choose a random side of the boss to spawn the fragment.
         chanceX = random.random()
         chanceY = random.random()
 
@@ -166,7 +174,7 @@ class Boss_bits:
         
 
 
-    def startAttack(self):
+    def startAttack(self): # Choose where to attack the player.
         if self.attack == False and self.retreat == False:
             self.presiceAttackPoint = (self.player.x,self.player.y)
             self.retreatPoint = (self.x,self.y)
@@ -182,7 +190,7 @@ class Boss_bits:
         
 
 
-        if self.assemble:
+        if self.assemble: # If the bits should assemble go towards the point where the boss split
 
             dx = self.assemblePoint[0] - self.x
             dy = self.assemblePoint[1] - self.y
@@ -195,7 +203,7 @@ class Boss_bits:
                 self.boss.asseble()
 
 
-        elif self.attack :
+        elif self.attack : # Save the point it where on the circle and then target the player.
             
           
             ax, ay = self.presiceAttackPoint
@@ -211,7 +219,7 @@ class Boss_bits:
                 self.attack = False
                 self.retreat = True
 
-        elif self.retreat :
+        elif self.retreat : # Go back from attacking the player to the point it where on the circle before attacking.
            
            
             rx, ry = self.retreatPoint
@@ -225,7 +233,7 @@ class Boss_bits:
             else:
                 self.retreat = False
 
-        elif distance > self.attackRadius:
+        elif distance > self.attackRadius: # When splitting make the bits go towards the player so it can perfecly land into and orbit around the point.
 
             
 
@@ -240,7 +248,7 @@ class Boss_bits:
             new_point_xod = self.attackPoint[0] - (self.attackRadius * math.cos(vod))
 
 
-            if self.attackPoint[1] > self.y:
+            if self.attackPoint[1] > self.y: # If the bits y is heigher then the players y target one side.
                 
                 dy = new_point_y - self.y
                 dx = new_point_x - self.x
@@ -249,7 +257,7 @@ class Boss_bits:
 
                 self.x += dx / distance * self.speed
                 self.y += dy / distance * self.speed
-            else:
+            else: # If the bits y is lowet the the players y target the opposite point to orbit around. Other wise this will cause confusion between which point to target.
                 dy = new_point_yod - self.y
                 dx = new_point_xod - self.x
 
@@ -257,7 +265,7 @@ class Boss_bits:
 
                 self.x += dx / distance * self.speed
                 self.y += dy / distance * self.speed
-        else:
+        else: # If none of the abouve just target the player for defualt movement.
             dy = self.player.y - self.y
             dx = self.player.x - self.x
 
@@ -269,7 +277,7 @@ class Boss_bits:
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)
 
 
-class Splinter_fragments(Enemy):
+class Splinter_fragments(Enemy): # Inherent the enemy class. But add one method for animation toward the player.x and then use the defualt movement.
     def __init__(self,x,y,player, start_point):
         super().__init__(0,0,player)
         self.x = x
@@ -291,7 +299,7 @@ class Splinter_fragments(Enemy):
 
 
 
-class particleCarrier:
+class particleCarrier: # Create a class for the particles to the player will collide with. This exists to some particles collide and kill player and some do not.
     def __init__(self,x,y,size,player, angle, boss):
         self.size = size
         self.x = x

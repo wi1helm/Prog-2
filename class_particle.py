@@ -4,7 +4,7 @@ import math
 
 particles = []
 
-class Particle:
+class Particle: # Create a class for the particles.
     def __init__(self, x, y, size, speed,  color,normal_speed):
         self.x = x
         self.y = y
@@ -27,8 +27,8 @@ class Particle:
         if self.x > 0 and self.y > 0:
             pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)
 
-def create_particle(amount, size, speed, pos, color=(255, 255, 255), normal_speed=random.randint(1, 5)):
-    if amount > 15:
+def create_particle(amount, size, speed, pos, color=(255, 255, 255), normal_speed=random.randint(1, 5)): # 
+    if amount > 15: # Max particle count to limit lag.
         amount = 15
     for i in range(amount):
         x, y = pos

@@ -8,9 +8,11 @@ from class_enemy import Enemy, ZigzagEnemy, MissileEnemy
 from class_particle import *
 from class_player import Player
 
+
+# Initite pygame and pygame mixer
 pygame.init()
 pygame.mixer.init()
-pygame.mixer.music.set_volume(0.4)  # 50% volume
+pygame.mixer.music.set_volume(0.4)  # 40% volume
 
 # Set the screen size and title
 screen_width = 1200
@@ -18,6 +20,7 @@ screen_height = 900
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("My Game")
 
+# Setup loading screen text
 font = pygame.font.Font(None, 36)
 loading_surface = font.render("Loading", True, (255, 255, 255))
 screen.blit(loading_surface, (screen_width/2, screen_height/2))
@@ -25,7 +28,7 @@ pygame.display.flip()
 
 # Function to check collisions between bullets and enemies
 
-def checkPlayerDeath():# Check for player death
+def checkPlayerDeath():# Check for collition between player and enemies on collotion, death
     for enemy in enemies:
         try:
             for missile in enemy.missiles:
@@ -53,7 +56,7 @@ def checkPlayerDeath():# Check for player death
             if distance < fragment.radius + player.radius:
                     game_over_screen()
 
-def check_collisions():
+def check_collisions(): # Check for collitions between bullets and enemies. Removing size, creating particles on death and giving score
     global score, spawn_enemies
 
     for bullet in bullets:
@@ -120,7 +123,6 @@ def title_screen():
     # Set the background color
     screen.fill((255, 255, 255))
 
-    # Create a font object
     font = pygame.font.SysFont(None, 48)
 
     # Create a text surface with the title
@@ -128,12 +130,12 @@ def title_screen():
     title_rect = title_text.get_rect()
     title_rect.center = (screen_width // 2, screen_height // 4)
 
-    # Create a text surface with the message
+    # Create a text surface for the start button
     message_text = font.render("Start", True, (0, 0, 0))
     message_rect = message_text.get_rect()
     message_rect.center = (screen_width // 2, screen_height // 2)
 
-    # Create a text surface with the setting button text
+    # Create a text surface with the setting button
     setting_text = font.render("Settings", True, (0, 0, 0))
     setting_rect = setting_text.get_rect()
     setting_rect.center = (screen_width // 2, screen_height * 3 // 4)
@@ -163,11 +165,11 @@ def title_screen():
 
 # Function to display game over screen and wait for player to choose option
 def game_over_screen():
-    # Stop playing music
-
+    
     # Set the background color
     screen.fill((255, 255, 255))
 
+    # Reset all varibles
     global player, bullets, enemies,bosses, score, beat_counter, zigzag, missile, enemy_missile_count, boss_spawn, spawn_enemies, has_boss_spawned, currentMusicID
     player = Player(400, 300)
     bullets = []
@@ -182,19 +184,20 @@ def game_over_screen():
     missile = False
     spawn_enemies = True
     enemy_missile_count = 0
-    # Create a font object
+    
     font = pygame.font.SysFont(None, 48)
 
-    # Create a text surface with the message
+    # Create a text surface with the game over message
     message_text = font.render("Game over", True, (0, 0, 0))
     message_rect = message_text.get_rect()
     message_rect.center = (screen_width // 2, screen_height // 4)
 
-    # Create text surfaces for the options
+    # Create text surfaces for the resart button
     restart_text = font.render("Restart", True, (0, 0, 0))
     restart_rect = restart_text.get_rect()
     restart_rect.center = (screen_width // 2, screen_height // 2)
 
+    # Create a text surface for the back to main menu button
     menu_text = font.render("Main menu", True, (0, 0, 0))
     menu_rect = menu_text.get_rect()
     menu_rect.center = (screen_width // 2, screen_height // 2 + 50)
@@ -204,6 +207,7 @@ def game_over_screen():
     screen.blit(restart_text, restart_rect)
     screen.blit(menu_text, menu_rect)
 
+    #load the new song. And make it loop.
     pygame.mixer.music.load(music_paths[currentMusicID])
     pygame.mixer.music.play(-1)
 
@@ -226,6 +230,8 @@ def game_over_screen():
                     waiting = False
                     title_screen()
 
+# Create varibles and player.
+
 global player, bullets, enemies, score, beat_counter, zigzag, missile, enemy_missile_count, bosses, boss_spawn, spawn_enemies, has_boss_spawned, currentMusicID
 player = Player(400, 300)
 bullets = []
@@ -233,23 +239,31 @@ enemies = []
 bosses = []
 score = 0
 
+# If there is not highscore file create one with highscore 0
 if not os.path.isfile("highscore.txt"):
     with open("highscore.txt", "w") as file:
         file.write("0")
 
+# If there is a highscore file read the heighscore.
 with open("highscore.txt", "r") as file:
     highscore = int(file.read())
 
-
+# Draw the scores
 score_surface = font.render("Score: " + str(score), True, (255, 255, 255))
 screen.blit(score_surface, (10, 10))
 highscore_text = font.render("High score: " + str(highscore), True, (255, 255, 255))
 screen.blit(highscore_text, (screen_width - 100, 10))
 
-next_color_time = 0
+
+# Set the minimum brightness threshold for the enemies color
+brightness_threshold = 100  
+
+
+
 clock = pygame.time.Clock()
 running = True
 
+# Load the music varibles.
 music_paths = ["boss.mp3",'song1.mp3']
 currentMusicID = 0
 lastMusicID = currentMusicID
@@ -262,6 +276,7 @@ tempoList = []
 beat_framesList = []
 beat_timesList = []
 
+#Load and analyze the music files.
 for paths in music_paths:
     y, sr = librosa.load(paths, mono=True)
     yList.append(y)
@@ -276,11 +291,11 @@ for paths in music_paths:
     beat_counter = 0
     pathIndex += 1
 
-
+# Load and play the music on replau.
 pygame.mixer.music.load(music_paths[currentMusicID])
 pygame.mixer.music.play(-1)
 
-
+#Add events and timer to those events.
 ADD_ENEMY_EVENT = pygame.USEREVENT + 1
 pygame.time.set_timer(ADD_ENEMY_EVENT, 1200)
 
@@ -288,28 +303,32 @@ SHOOT_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SHOOT_EVENT, 200)
 
 ATTACK_EVENT = pygame.USEREVENT + 3
-pygame.time.set_timer(ATTACK_EVENT, 1000)
+pygame.time.set_timer(ATTACK_EVENT, 400)
 
 FRAG_ATTACK_EVENT = pygame.USEREVENT + 4
 pygame.time.set_timer(FRAG_ATTACK_EVENT, 1000)
 
+# Enter the title screen.
 title_screen()
 
+#Set a defualt color for the enemies.
 new_color = (33, 73, 62)
 
+# Initiate if a type of enemiy should spawn.
 zigzag = False
 missile = False
-boss_spawn = True
-spawn_enemies = False
+boss_spawn = False
+spawn_enemies = True
 enemy_missile_count = 0
 has_boss_spawned = False
-
+# Laptop mode makes it auto shoot so you dont have to clikc on trackpad.
 mode_laptop = False
 
+# Main loop.
 while running:
     clock.tick(60)
 
-
+    # If the music id changed load and play the new music id
     if lastMusicID != currentMusicID:
         pygame.mixer.music.load(music_paths[currentMusicID])
         pygame.mixer.music.play(-1)
@@ -322,7 +341,7 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             player.shoot(bullets)
-        if event.type == ATTACK_EVENT:
+        if event.type == ATTACK_EVENT: # Makes the boss split bits attack the player.
             if len(bosses) > 0:
                 for boss in bosses:
                     randomPiece = random.randint(0,len(boss.pieces))
@@ -330,8 +349,8 @@ while running:
                         if i == randomPiece:
                             if boss.pieces[i].attack != True and boss.pieces[i].retreat != True:
                                 boss.pieces[i].startAttack()
-                                print("obama")
-        if event.type == FRAG_ATTACK_EVENT:
+                                
+        if event.type == FRAG_ATTACK_EVENT: # Makes the boss fragments attack if there is a boss.
             print("obaam")
             if len(bosses) > 0:
                 for boss in bosses:
@@ -339,14 +358,15 @@ while running:
                         boss.attack()
 
 
-        if event.type == SHOOT_EVENT and mode_laptop:
+        if event.type == SHOOT_EVENT and mode_laptop: # Make the player auto shoot.
             player.shoot(bullets)
         elif event.type == ADD_ENEMY_EVENT:
             
-            if score > 110 and has_boss_spawned == False:
+            if score > 110 and has_boss_spawned == False: # If the score is highe and the boss has never spawned. Spawn the boss.
                 boss_spawn = True
 
-            if boss_spawn == True:
+            if boss_spawn == True: # Spawn the boss
+                currentMusicID = 1
                 boss = Splinter(screen_width,screen_height,player)
                 bosses.append(boss)
                 boss_spawn = False
@@ -355,12 +375,12 @@ while running:
                 print("boss Spawned")
 
             
-            if spawn_enemies:
-                if score > 50:
+            if spawn_enemies: # If enemy spawn event is true. So a enemy should spawn.
+                if score > 50: #If the score is higher then 50 there is a chance to spawn missile enemy.
                     missile = random.random() < 0.4
                 
-                if score > 100:
-                    currentMusicID = 1
+                if score > 100: # If the score is highet then 00 there is a chanche to spawn the zigzag enemy,
+                    
                     zigzag = random.random() < 0.2 # 20% change of zigzagg enemy
                 if zigzag:
                     zigzag = False
@@ -369,14 +389,14 @@ while running:
                     missile = False
                     enemies.append(MissileEnemy(screen_width, screen_height, player))
                     enemy_missile_count += 1
-                else:
+                else: # Spawn normal enemy.
                     missile = False
                     zigzag = False
                     enemies.append(Enemy(screen_width, screen_height, player))
 
     # Handle player movement
     keys_pressed = pygame.key.get_pressed()
-    player.move(keys_pressed, screen_width, screen_height)
+    player.move(keys_pressed, screen_width, screen_height) # Move the player.
 
 
 
@@ -384,7 +404,7 @@ while running:
 
     # Check for collisions
     check_collisions()
-    #checkPlayerDeath()
+    checkPlayerDeath()
 
     # Update high score
     with open("highscore.txt", "r") as file:
@@ -394,7 +414,7 @@ while running:
         with open("highscore.txt", "w") as file:
             file.write(str(highscore))
 
-    # Draw everything
+    # Draw, update and get new color for all enemies and bullets.
     screen.fill((0, 0, 0))
     for bullet in bullets:
         bullet.update()
@@ -425,7 +445,7 @@ while running:
                 fragment.start_animation()
             else:
                 fragment.update(screen_width,screen_height)
-    player.draw(screen)
+    player.draw(screen) # Draw player
 
     # Display score and high score
     score_surface = font.render("Score: " + str(score), True, (255, 255, 255))
@@ -434,8 +454,14 @@ while running:
     screen.blit(highscore_text, (screen_width - 200, 10))
 
     pygame.display.flip()
+
+    # If there is a new beat from the music analysis get a new color.
     if beat_counter < len(beat_timesList[currentMusicID]) and pygame.mixer.music.get_pos() / 1000 >= beat_timesList[currentMusicID][beat_counter]:
         if onset_envList[currentMusicID][beat_framesList[currentMusicID][beat_counter]] > threshold:
-            new_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+            while True:
+                new_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+                # Check if the sum of RGB values is above the brightness threshold
+                if sum(new_color) > brightness_threshold:
+                    break
         beat_counter += 1
 pygame.quit()
