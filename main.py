@@ -264,7 +264,7 @@ clock = pygame.time.Clock()
 running = True
 
 # Load the music varibles.
-music_paths = ["boss.mp3",'song1.mp3']
+music_paths = ["song1.mp3",'boss.mp3']
 currentMusicID = 0
 lastMusicID = currentMusicID
 threshold = 0.4
