@@ -9,6 +9,8 @@ from class_particle import *
 from class_player import Player
 
 
+
+
 # Initite pygame and pygame mixer
 pygame.init()
 pygame.mixer.init()
@@ -263,7 +265,7 @@ brightness_threshold = 100
 clock = pygame.time.Clock()
 running = True
 
-# Load the music varibles.
+# Load the music varibles. This was made by chatGPT
 music_paths = ["boss.mp3",'song1.mp3']
 currentMusicID = 0
 lastMusicID = currentMusicID
@@ -276,7 +278,7 @@ tempoList = []
 beat_framesList = []
 beat_timesList = []
 
-#Load and analyze the music files.
+#Load and analyze the music files. This was made by chatGPT
 for paths in music_paths:
     y, sr = librosa.load(paths, mono=True)
     yList.append(y)
@@ -322,7 +324,7 @@ spawn_enemies = True
 enemy_missile_count = 0
 has_boss_spawned = False
 # Laptop mode makes it auto shoot so you dont have to clikc on trackpad.
-mode_laptop = False
+mode_laptop = True
 
 # Main loop.
 while running:
@@ -350,8 +352,7 @@ while running:
                             if boss.pieces[i].attack != True and boss.pieces[i].retreat != True:
                                 boss.pieces[i].startAttack()
                                 
-        if event.type == FRAG_ATTACK_EVENT: # Makes the boss fragments attack if there is a boss.
-            print("obaam")
+        if event.type == FRAG_ATTACK_EVENT: # Makes the boss fragments attack if there is a boss
             if len(bosses) > 0:
                 for boss in bosses:
                     if boss.normal:
@@ -404,7 +405,7 @@ while running:
 
     # Check for collisions
     check_collisions()
-    checkPlayerDeath()
+    #checkPlayerDeath()
 
     # Update high score
     with open("highscore.txt", "r") as file:
@@ -455,7 +456,7 @@ while running:
 
     pygame.display.flip()
 
-    # If there is a new beat from the music analysis get a new color.
+    # If there is a new beat from the music analysis get a new color. This was made with chatGPT
     if beat_counter < len(beat_timesList[currentMusicID]) and pygame.mixer.music.get_pos() / 1000 >= beat_timesList[currentMusicID][beat_counter]:
         if onset_envList[currentMusicID][beat_framesList[currentMusicID][beat_counter]] > threshold:
             while True:
@@ -465,3 +466,7 @@ while running:
                     break
         beat_counter += 1
 pygame.quit()
+
+
+
+

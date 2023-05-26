@@ -10,7 +10,7 @@ class Enemy:
         if self.side == 1:  # Spawn from the top
             self.x = random.randint(0, screen_width)
             self.y = 0
-        elif self.side == 2:  # Spawn from the right
+        elif self.side == 2:  #   Spawn from the right
             self.x = screen_width
             self.y = random.randint(0, screen_height)
         elif self.side == 3:  # Spawn from the bottom
