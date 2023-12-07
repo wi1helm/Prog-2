@@ -1,6 +1,8 @@
 import pygame
 import math
 
+from class_particle import particles, create_particle
+
 class Player:
     def __init__(self, x, y):
         self.x = x
@@ -68,7 +70,7 @@ class Bullet:
     def update(self):
         self.x += math.cos(self.angle) * self.speed
         self.y += math.sin(self.angle) * self.speed
-
+        create_particle(5,5,1,(self.x,self.y),(255,50,30))
     def draw(self, screen):
         if self.x > 0: # Prevents some bug when x is negativ. Draws a line ove the screen for a split seacond.
             pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)

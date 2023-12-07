@@ -12,7 +12,7 @@ class Splinter:
         self.screen_height = screen_height
         self.screen_width = screen_width
         self.player = player
-        self.health = 500
+        self.health = 5
         self.speed = 0.5
         self.size = self.health / 2
         self.color = (255 ,48, 0)
@@ -63,12 +63,7 @@ class Splinter:
         print("split")
         self.split_ready = False
         self.lastSplit = self.size
-        self.split_point = (self.x,self.y)
-        dx = self.screen_width/2 - self.player.x
-        dy = self.screen_height/2 - self.player.y
-        distance = math.sqrt(dx ** 2 + dy ** 2)
-        if distance > 250:
-           self.split_point = (self.screen_width/2,self.screen_height/2) 
+        self.split_point = (self.screen_width/2,self.screen_height/2)
         pieces =  random.randint(10,15)
         new_size = (self.size / pieces)
         for i in range(pieces):

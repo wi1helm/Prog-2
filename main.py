@@ -85,7 +85,6 @@ def check_collisions(): # Check for collitions between bullets and enemies. Remo
                 boss.size -= 0.5
 
                 if boss.size <= 2:
-                    create_particle(4, 5, 0.5, (boss.x, boss.y),new_color)
                     bosses.remove(boss)
                     print("boss dead")
                     spawn_enemies = True
